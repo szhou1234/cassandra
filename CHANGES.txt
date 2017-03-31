@@ -7,6 +7,7 @@
  * Fix schema version calculation for rolling upgrades (CASSANDRA-13441)
 
 3.0.13
+ * Introduce error metrics for repair (CASSANDRA-13387)
  * Make reading of range tombstones more reliable (CASSANDRA-12811)
  * Fix startup problems due to schema tables not completely flushed (CASSANDRA-12213)
  * Fix view builder bug that can filter out data on restart (CASSANDRA-13405)
