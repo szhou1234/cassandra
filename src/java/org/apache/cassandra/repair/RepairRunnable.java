@@ -43,6 +43,7 @@ import org.apache.cassandra.db.ColumnFamilyStore;
 import org.apache.cassandra.db.ConsistencyLevel;
 import org.apache.cassandra.dht.Range;
 import org.apache.cassandra.dht.Token;
+import org.apache.cassandra.metrics.StorageMetrics;
 import org.apache.cassandra.repair.messages.RepairOption;
 import org.apache.cassandra.service.ActiveRepairService;
 import org.apache.cassandra.service.QueryState;
@@ -102,6 +103,7 @@ public class RepairRunnable extends WrappedRunnable implements ProgressEventNoti
 
     protected void fireErrorAndComplete(String tag, int progressCount, int totalProgress, String message)
     {
+        StorageMetrics.repairExceptions.inc();
         fireProgressEvent(tag, new ProgressEvent(ProgressEventType.ERROR, progressCount, totalProgress, message));
         fireProgressEvent(tag, new ProgressEvent(ProgressEventType.COMPLETE, progressCount, totalProgress, String.format("Repair command #%d finished with error", cmd)));
     }
@@ -261,6 +263,8 @@ public class RepairRunnable extends WrappedRunnable implements ProgressEventNoti
 
                 public void onFailure(Throwable t)
                 {
+                    StorageMetrics.repairExceptions.inc();
+
                     /**
                      * If the failure message below is modified, it must also be updated on
                      * {@link org.apache.cassandra.utils.progress.jmx.LegacyJMXProgressSupport}
@@ -269,7 +273,7 @@ public class RepairRunnable extends WrappedRunnable implements ProgressEventNoti
                     String message = String.format("Repair session %s for range %s failed with error %s",
                                                    session.getId(), session.getRanges().toString(), t.getMessage());
                     logger.error(message, t);
-                    fireProgressEvent(tag, new ProgressEvent(ProgressEventType.PROGRESS,
+                    fireProgressEvent(tag, new ProgressEvent(ProgressEventType.ERROR,
                                                              progress.incrementAndGet(),
                                                              totalProgress,
                                                              message));
@@ -310,6 +314,7 @@ public class RepairRunnable extends WrappedRunnable implements ProgressEventNoti
                 SystemDistributedKeyspace.successfulParentRepair(parentSession, successfulRanges);
                 if (hasFailure.get())
                 {
+                    StorageMetrics.repairExceptions.inc();
                     fireProgressEvent(tag, new ProgressEvent(ProgressEventType.ERROR, progress.get(), totalProgress,
                                                              "Some repair failed"));
                 }
@@ -323,6 +328,7 @@ public class RepairRunnable extends WrappedRunnable implements ProgressEventNoti
 
             public void onFailure(Throwable t)
             {
+                StorageMetrics.repairExceptions.inc();
                 fireProgressEvent(tag, new ProgressEvent(ProgressEventType.ERROR, progress.get(), totalProgress, t.getMessage()));
                 SystemDistributedKeyspace.failParentRepair(parentSession, t);
                 repairComplete();

@@ -986,12 +986,7 @@ public class NodeProbe implements AutoCloseable
     {
         return ssProxy.getTraceProbability();
     }
-
-    public int getExceptionCount()
-    {
-        return (int)StorageMetrics.exceptions.getCount();
-    }
-
+    
     public Map<String, Integer> getDroppedMessages()
     {
         return msProxy.getDroppedMessages();

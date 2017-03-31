@@ -177,11 +177,4 @@ public class RepairMessageSerializationsTest
         SnapshotMessage msg = new SnapshotMessage(buildRepairJobDesc());
         serializeRoundTrip(msg, SnapshotMessage.serializer);
     }
-
-    @Test
-    public void cleanupMessage() throws IOException
-    {
-        CleanupMessage msg = new CleanupMessage(UUID.randomUUID());
-        serializeRoundTrip(msg, CleanupMessage.serializer);
-    }
 }
