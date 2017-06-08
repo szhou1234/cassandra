@@ -286,7 +286,7 @@ public class DynamicEndpointSnitch extends AbstractEndpointSnitch implements ILa
         throw new UnsupportedOperationException("You shouldn't wrap the DynamicEndpointSnitch (within itself or otherwise)");
     }
 
-    public void receiveTiming(InetAddress host, long latency) // this is cheap
+    public void receiveTiming(InetAddress host, long latencyInMicros) // this is cheap
     {
         ExponentiallyDecayingReservoir sample = samples.get(host);
         if (sample == null)
@@ -296,7 +296,7 @@ public class DynamicEndpointSnitch extends AbstractEndpointSnitch implements ILa
             if (sample == null)
                 sample = maybeNewSample;
         }
-        sample.update(latency);
+        sample.update(latencyInMicros);
     }
 
     private void updateScores() // this is expensive

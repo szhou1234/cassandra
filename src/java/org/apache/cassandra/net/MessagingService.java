@@ -529,8 +529,7 @@ public final class MessagingService implements MessagingServiceMBean
             {
                 final CallbackInfo expiredCallbackInfo = pair.right.value;
 
-                maybeAddLatency(expiredCallbackInfo.callback, expiredCallbackInfo.target, pair.right.timeout);
-
+                maybeAddLatency(expiredCallbackInfo.callback, expiredCallbackInfo.target, TimeUnit.MILLISECONDS.toMicros(pair.right.timeout));
                 ConnectionMetrics.totalTimeouts.mark();
                 OutboundTcpConnectionPool cp = getConnectionPool(expiredCallbackInfo.target);
                 if (cp != null)
