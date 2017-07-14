@@ -896,6 +896,25 @@ public class DatabaseDescriptor
         }
 
         paritionerName = partitioner.getClass().getCanonicalName();
+
+        try
+        {
+            String badnessThreshold = System.getProperty("cassandra.dynamic_snitch_badness_threshold", null);
+            if (badnessThreshold != null)
+            {
+                double threshold = Double.parseDouble(badnessThreshold);
+                if (threshold >= 0)
+                {
+                    conf.dynamic_snitch_badness_threshold = threshold;
+                }
+                else
+                {
+                    throw new ConfigurationException("cassandra.dynamic_snitch_badness_threshold must be non-negative", false);
+                }
+            }
+        } catch (NumberFormatException e) {
+            throw new ConfigurationException("cassandra.dynamic_snitch_badness_threshold must be number", false);
+        }
     }
 
     private static FileStore guessFileStore(String dir) throws IOException
