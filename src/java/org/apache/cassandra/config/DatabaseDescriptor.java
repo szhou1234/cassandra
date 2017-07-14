@@ -737,6 +737,25 @@ public class DatabaseDescriptor
 
         if (conf.otc_coalescing_enough_coalesced_messages <= 0)
             throw new ConfigurationException("otc_coalescing_enough_coalesced_messages must be positive", false);
+
+        try
+        {
+            String badnessThreshold = System.getProperty("cassandra.dynamic_snitch_badness_threshold", null);
+            if (badnessThreshold != null)
+            {
+                double threshold = Double.parseDouble(badnessThreshold);
+                if (threshold >= 0)
+                {
+                    conf.dynamic_snitch_badness_threshold = threshold;
+                }
+                else
+                {
+                    throw new ConfigurationException("cassandra.dynamic_snitch_badness_threshold must be non-negative", false);
+                }
+            }
+        } catch (NumberFormatException e) {
+            throw new ConfigurationException("cassandra.dynamic_snitch_badness_threshold must be number", false);
+        }
     }
 
     private static FileStore guessFileStore(String dir) throws IOException
