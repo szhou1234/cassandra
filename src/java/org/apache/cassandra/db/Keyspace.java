@@ -659,7 +659,7 @@ public class Keyspace
         return futures;
     }
 
-    public Iterable<ColumnFamilyStore> getValidColumnFamilies(boolean allowIndexes,
+    public Collection<ColumnFamilyStore> getValidColumnFamilies(boolean allowIndexes,
                                                               boolean autoAddIndexes,
                                                               String... cfNames) throws IOException
     {

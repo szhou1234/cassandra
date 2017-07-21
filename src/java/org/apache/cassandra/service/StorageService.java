@@ -3255,9 +3255,10 @@ public class StorageService extends NotificationBroadcasterSupport implements IE
      * @param autoAddIndexes Automatically add secondary indexes if a CF has them
      * @param keyspaceName keyspace
      * @param cfNames CFs
+     * @return valid column families.
      * @throws java.lang.IllegalArgumentException when given CF name does not exist
      */
-    public Iterable<ColumnFamilyStore> getValidColumnFamilies(boolean allowIndexes, boolean autoAddIndexes, String keyspaceName, String... cfNames) throws IOException
+    public Collection<ColumnFamilyStore> getValidColumnFamilies(boolean allowIndexes, boolean autoAddIndexes, String keyspaceName, String... cfNames) throws IOException
     {
         Keyspace keyspace = getValidKeyspace(keyspaceName);
         return keyspace.getValidColumnFamilies(allowIndexes, autoAddIndexes, cfNames);
