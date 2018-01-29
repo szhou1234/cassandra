@@ -25,9 +25,14 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.apache.cassandra.config.CFMetaData;
 import org.apache.cassandra.config.ColumnDefinition;
@@ -39,7 +44,9 @@ import org.apache.cassandra.db.RangeTombstone;
 import org.apache.cassandra.db.marshal.AbstractType;
 import org.apache.cassandra.db.marshal.CollectionType;
 import org.apache.cassandra.db.marshal.CompositeType;
-import org.apache.cassandra.db.marshal.UserType;
+import org.apache.cassandra.db.marshal.ListType;
+import org.apache.cassandra.db.marshal.MapType;
+import org.apache.cassandra.db.marshal.SetType;
 import org.apache.cassandra.db.rows.Cell;
 import org.apache.cassandra.db.rows.ColumnData;
 import org.apache.cassandra.db.rows.ComplexColumnData;
@@ -57,8 +64,6 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.impl.Indenter;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
 import org.codehaus.jackson.util.DefaultPrettyPrinter.NopIndenter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class JsonTransformer
 {
@@ -385,7 +390,6 @@ public final class JsonTransformer
                     objectIndenter.setCompact(true);
                     json.writeStartObject();
                     json.writeFieldName("name");
-                    AbstractType<?> type = cd.column().type;
                     json.writeString(cd.column().name.toCQLString());
                     serializeDeletion(complexData.complexDeletion());
                     objectIndenter.setCompact(true);
@@ -426,7 +430,35 @@ public final class JsonTransformer
                 json.writeEndArray();
                 arrayIndenter.setCompact(false);
             }
-            if (cell.isTombstone())
+            // This is for frozen collection and Cassandra treats it as simple column thus client needs to parse it.
+            else if (type instanceof CollectionType)
+            {
+                json.writeBooleanField("frozen", true);
+                json.writeFieldName("values");
+                arrayIndenter.setCompact(true);
+                if (type instanceof ListType || type instanceof SetType)
+                {
+                    json.writeStartArray();
+                    Collection<Object> collection = (Collection<Object>) type.getSerializer().deserialize(cell.value());
+                    for (Object obj : collection)
+                    {
+                        json.writeString(obj.toString());
+                    }
+                    json.writeEndArray();
+                }
+                else if (type instanceof MapType)
+                {
+                    json.writeStartObject();
+                    Map<String, String> map = (Map<String, String>) type.getSerializer().deserialize(cell.value());
+                    for (Map.Entry<String, String> entry : map.entrySet())
+                    {
+                        json.writeStringField(entry.getKey(), entry.getValue());
+                    }
+                    json.writeEndObject();
+                }
+                arrayIndenter.setCompact(false);
+            }
+            else if (cell.isTombstone())
             {
                 json.writeFieldName("deletion_info");
                 objectIndenter.setCompact(true);
