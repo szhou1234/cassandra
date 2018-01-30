@@ -436,11 +436,11 @@ public final class JsonTransformer
                 json.writeEndObject();
                 objectIndenter.setCompact(false);
             }
-            else
+            else if (cell.value().remaining() != 0)
             {
-                json.writeFieldName("value");
-                json.writeRawValue(cell.column().cellValueType().toJSONString(cell.value(), Server.CURRENT_VERSION));
+                json.writeStringField("value", cell.column().cellValueType().toJSONString(cell.value(), Server.CURRENT_VERSION));
             }
+
             if (liveInfo.isEmpty() || cell.timestamp() != liveInfo.timestamp())
             {
                 json.writeFieldName("tstamp");
